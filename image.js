@@ -17,7 +17,6 @@ db.once("open", () => {
   console.log("Connected to MongoDB");
 });
 
-
 const foodItemSchema = new mongoose.Schema({
   foodName: {
     type: String,
@@ -39,15 +38,18 @@ const foodItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  quantity: {
+    type: Number,
+    required: true,
+  },
+
   // You can add more fields as needed
 });
-
 
 // Define Mongoose schema
 const imageSchema = new mongoose.Schema({
   image: { data: Buffer, contentType: String },
 });
-
 
 const FoodItem = mongoose.model("FoodItem", foodItemSchema);
 
@@ -86,13 +88,15 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     await newImage.save();
     // Remove the uploaded file from disk
     fs.unlinkSync(req.file.path);
-    const foodName = "Apple";
+    const foodNames = ["Apple", "Banana", "Orange"];
 
-    const foodItem = await FoodItem.findOne({ foodName });
+    const foodItems = await FoodItem.find({ foodName: { $in: foodNames } });
+    console.log(foodItems);
+
 
     res.json({
       message: "File uploaded and saved to database successfully.",
-      foodItem: foodItem, // Include the foodItem in the response
+      foodItem: foodItems, // Include the foodItem in the response
     });
     console.log(res.json);
   } catch (err) {

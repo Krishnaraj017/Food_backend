@@ -17,21 +17,26 @@ const foodItemSchema = new mongoose.Schema({
     required: true,
   },
   proteins: {
-    type: Number,
+    type: String,
     required: true,
   },
   carbs: {
-    type: Number,
+    type: String,
     required: true,
   },
   fats: {
-    type: Number,
+    type: String,
     required: true,
   },
   calories: {
+    type: String,
+    required: true,
+  },
+  quantity: {
     type: Number,
     required: true,
   },
+
   // You can add more fields as needed
 });
 
@@ -46,6 +51,7 @@ const foodItems = [
     carbs: 27,
     fats: 0.3,
     calories: 105,
+    quantity:1,
   },
   {
     foodName: "Apple",
@@ -53,6 +59,15 @@ const foodItems = [
     carbs: 25,
     fats: 0.3,
     calories: 95,
+    quantity:2,
+  },
+   {
+    foodName: "Grape",
+    proteins: 0.5,
+    carbs: 25,
+    fats: 0.3,
+    calories: 95,
+    quantity:2,
   },
   // Add more food items as needed
 ];
