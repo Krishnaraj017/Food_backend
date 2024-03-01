@@ -1,3 +1,5 @@
+//This is used to add more foodNames to DB and add nutrient contents explicitely
+
 const mongoose = require("mongoose");
 const express = require("express");
 const axios = require("axios");
@@ -95,12 +97,7 @@ app.get("/food/:name", async (req, res) => {
     }
     console.log(foodItem);
 
-    //  res.json(foodItem);
-    // Send the foodItem data as JSON in the POST request to /food/nutrients endpoint
-    // const response = await axios.post(
-    //   "http://localhost:8000/food/nutrients",
-    //   foodItem
-    // );
+    
 
     // Send the response received from the other API back to the client
     res.json(foodItem);
@@ -110,16 +107,6 @@ app.get("/food/:name", async (req, res) => {
   }
 });
 
-// app.post("/food/nutrients", async (req, res) => {});
-
-// app.post("/food/nutrients", async (req, res) => {
-//   const foodItem = req.body;
-
-//   // Perform further processing with the received food item data
-
-//   // Send a response back (this is just a placeholder, you should customize this)
-//   res.json({ message: "Received food item data successfully" });
-// });
 
 // Start the server
 app.listen(port, () => {

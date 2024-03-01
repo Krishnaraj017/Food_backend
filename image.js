@@ -17,6 +17,8 @@ db.once("open", () => {
   console.log("Connected to MongoDB");
 });
 
+
+//FoodItem Schema
 const foodItemSchema = new mongoose.Schema({
   foodName: {
     type: String,
@@ -43,7 +45,6 @@ const foodItemSchema = new mongoose.Schema({
     required: true,
   },
 
-  // You can add more fields as needed
 });
 
 // Define Mongoose schema
@@ -55,6 +56,8 @@ const FoodItem = mongoose.model("FoodItem", foodItemSchema);
 
 const Image = mongoose.model("Image", imageSchema);
 
+
+
 // Define storage for uploaded files
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -65,8 +68,12 @@ const storage = multer.diskStorage({
   },
 });
 
+
+
 // Create multer instance
 const upload = multer({ storage: storage });
+
+
 
 // Define route to handle file upload
 app.post("/upload", upload.single("image"), async (req, res) => {
@@ -84,15 +91,24 @@ app.post("/upload", upload.single("image"), async (req, res) => {
       },
     });
     //console.log(newImage);
+
+
     // Save the image to the database
     await newImage.save();
     // Remove the uploaded file from disk
     fs.unlinkSync(req.file.path);
+
+
+    //Add the model script here
+    //foodNames=  model result should be stored in this variable
+
+
+    ///The foodNames should be replaced by model predicted names
     const foodNames = ["Apple", "Banana", "Orange"];
+    
 
     const foodItems = await FoodItem.find({ foodName: { $in: foodNames } });
     console.log(foodItems);
-
 
     res.json({
       message: "File uploaded and saved to database successfully.",
@@ -104,6 +120,8 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     res.status(500).send("Error uploading file.");
   }
 });
+
+
 
 // Start the server
 app.listen(port, () => {
