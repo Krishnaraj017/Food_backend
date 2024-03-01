@@ -1,7 +1,8 @@
-const express = require("express");
-const multer = require("multer");
-const fs = require("fs");
+//This is used to add more foodNames to DB and add nutrient contents explicitely
+
 const mongoose = require("mongoose");
+const express = require("express");
+const axios = require("axios");
 
 const app = express();
 const port = 8000;
@@ -11,12 +12,6 @@ mongoose.connect("mongodb://127.0.0.1/mydb", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "MongoDB connection error:"));
-db.once("open", () => {
-  console.log("Connected to MongoDB");
-});
-
 
 const foodItemSchema = new mongoose.Schema({
   foodName: {
@@ -24,84 +19,93 @@ const foodItemSchema = new mongoose.Schema({
     required: true,
   },
   proteins: {
-    type: Number,
+    type: String,
     required: true,
   },
   carbs: {
-    type: Number,
+    type: String,
     required: true,
   },
   fats: {
-    type: Number,
+    type: String,
     required: true,
   },
   calories: {
+    type: String,
+    required: true,
+  },
+  quantity: {
     type: Number,
     required: true,
   },
+
   // You can add more fields as needed
 });
 
-
-// Define Mongoose schema
-const imageSchema = new mongoose.Schema({
-  image: { data: Buffer, contentType: String },
-});
-
-
+// Create the FoodItem model
 const FoodItem = mongoose.model("FoodItem", foodItemSchema);
 
-const Image = mongoose.model("Image", imageSchema);
-
-// Define storage for uploaded files
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
+// Array of food items
+const foodItems = [
+  {
+    foodName: "Banana",
+    proteins: 1.3,
+    carbs: 27,
+    fats: 0.3,
+    calories: 105,
+    quantity: 1,
   },
-  filename: function (req, file, cb) {
-    cb(null, "image.jpg");
+  {
+    foodName: "Apple",
+    proteins: 0.5,
+    carbs: 25,
+    fats: 0.3,
+    calories: 95,
+    quantity: 2,
   },
-});
+  {
+    foodName: "Grape",
+    proteins: 0.5,
+    carbs: 25,
+    fats: 0.3,
+    calories: 95,
+    quantity: 2,
+  },
+  // Add more food items as needed
+];
 
-// Create multer instance
-const upload = multer({ storage: storage });
+// Save each food item to the database
+FoodItem.insertMany(foodItems)
+  .then((result) => {
+    console.log("Food items saved successfully:", result);
+  })
+  .catch((error) => {
+    console.error("Error saving food items:", error);
+  });
 
-// Define route to handle file upload
-app.post("/upload", upload.single("image"), async (req, res) => {
+//fetching nutritens from database from model predicted name
+app.get("/food/:name", async (req, res) => {
+  const foodName = req.params.name;
+  //const foodName = "Apple"; // Dummy food name
+
   try {
-    // Read the uploaded image
-    const img = fs.readFileSync(req.file.path);
-    // Encode the image data as a base64 string
-    const encodedImg = img.toString("base64");
-
-    // Create a new document to store the image
-    const newImage = new Image({
-      image: {
-        data: Buffer.from(encodedImg, "base64"),
-        contentType: req.file.mimetype,
-      },
-    });
-    //console.log(newImage);
-    // Save the image to the database
-    await newImage.save();
-    // Remove the uploaded file from disk
-    fs.unlinkSync(req.file.path);
-    const foodName = "Apple";
-
+    // Find the food item by its name
     const foodItem = await FoodItem.findOne({ foodName });
 
-    res.json({
-      message: "File uploaded and saved to database successfully.",
-      foodItem: foodItem, // Include the foodItem in the response
-    });
-    console.log(res.json);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error uploading file.");
+    if (!foodItem) {
+      return res.status(404).json({ error: "Food not found" });
+    }
+    console.log(foodItem);
+
+    // Send the response received from the other API back to the client
+    res.json(foodItem);
+  } catch (error) {
+    console.error("Error retrieving food details:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Server is running on http://192.168.125.25:${port}`);
+  console.log(`Server is running on http://127.0.0.1:${port}`);
 });
