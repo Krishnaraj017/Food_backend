@@ -1,9 +1,57 @@
 const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
+const mongoose = require("mongoose");
 
 const app = express();
-const port = 8000; // Choose any port you want
+const port = 8000;
+
+// Connect to MongoDB
+mongoose.connect("mongodb://127.0.0.1/mydb", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "MongoDB connection error:"));
+db.once("open", () => {
+  console.log("Connected to MongoDB");
+});
+
+
+const foodItemSchema = new mongoose.Schema({
+  foodName: {
+    type: String,
+    required: true,
+  },
+  proteins: {
+    type: Number,
+    required: true,
+  },
+  carbs: {
+    type: Number,
+    required: true,
+  },
+  fats: {
+    type: Number,
+    required: true,
+  },
+  calories: {
+    type: Number,
+    required: true,
+  },
+  // You can add more fields as needed
+});
+
+
+// Define Mongoose schema
+const imageSchema = new mongoose.Schema({
+  image: { data: Buffer, contentType: String },
+});
+
+
+const FoodItem = mongoose.model("FoodItem", foodItemSchema);
+
+const Image = mongoose.model("Image", imageSchema);
 
 // Define storage for uploaded files
 const storage = multer.diskStorage({
@@ -17,13 +65,40 @@ const storage = multer.diskStorage({
 
 // Create multer instance
 const upload = multer({ storage: storage });
-//console.log(upload);
+
 // Define route to handle file upload
-app.post("/upload", upload.single("image"), (req, res) => {
-  console.log(req.body);
-  // File has been uploaded successfully
-  console.log("File uploaded:", req.file);
-  res.send("File uploaded successfully.");
+app.post("/upload", upload.single("image"), async (req, res) => {
+  try {
+    // Read the uploaded image
+    const img = fs.readFileSync(req.file.path);
+    // Encode the image data as a base64 string
+    const encodedImg = img.toString("base64");
+
+    // Create a new document to store the image
+    const newImage = new Image({
+      image: {
+        data: Buffer.from(encodedImg, "base64"),
+        contentType: req.file.mimetype,
+      },
+    });
+    //console.log(newImage);
+    // Save the image to the database
+    await newImage.save();
+    // Remove the uploaded file from disk
+    fs.unlinkSync(req.file.path);
+    const foodName = "Apple";
+
+    const foodItem = await FoodItem.findOne({ foodName });
+
+    res.json({
+      message: "File uploaded and saved to database successfully.",
+      foodItem: foodItem, // Include the foodItem in the response
+    });
+    console.log(res.json);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error uploading file.");
+  }
 });
 
 // Start the server
