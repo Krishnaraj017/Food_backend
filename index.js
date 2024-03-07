@@ -72,6 +72,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
   try {
     // Read the uploaded image
     const img = fs.readFileSync(req.file.path);
+    console.log(img);
     // Encode the image data as a base64 string
     const encodedImg = img.toString("base64");
 
@@ -111,5 +112,5 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Server is running on http://192.168.125.25:${port}`);
+  console.log(`Server is running on http://192.168.199.25:${port}`);
 });
